@@ -1,6 +1,10 @@
-[taskswap.backend]
-mongoHost = "localhost"
-mongoPort = 27017
-databaseName = "users"
-collectionName = "users"
-jwtSecret = "your-super-secret-jwt-key-change-this-in-production-make-it-at-least-32-characters-long"
+[database]
+host = "localhost"
+port = 27017
+database = "taskswap_db"
+username = ""
+password = ""
+
+[jwt]
+secret = "your_super_secret_jwt_key_change_this_in_production"
+expiration_seconds = 86400
