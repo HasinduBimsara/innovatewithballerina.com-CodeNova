@@ -694,34 +694,37 @@
 
     <script>
       // Password visibility toggle
-      const passwordToggle = document.getElementById('password-toggle');
-      const passwordInput = document.getElementById('password');
+      const passwordToggle = document.getElementById("password-toggle");
+      const passwordInput = document.getElementById("password");
 
-      passwordToggle.addEventListener('click', function() {
-        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordInput.setAttribute('type', type);
+      passwordToggle.addEventListener("click", function () {
+        const type =
+          passwordInput.getAttribute("type") === "password"
+            ? "text"
+            : "password";
+        passwordInput.setAttribute("type", type);
 
         // Toggle eye icon
-        this.classList.toggle('fa-eye');
-        this.classList.toggle('fa-eye-slash');
+        this.classList.toggle("fa-eye");
+        this.classList.toggle("fa-eye-slash");
       });
 
       // Password strength meter
-      const strengthFill = document.getElementById('strength-fill');
-      const strengthText = document.getElementById('strength-text');
+      const strengthFill = document.getElementById("strength-fill");
+      const strengthText = document.getElementById("strength-text");
 
-      passwordInput.addEventListener('input', function() {
+      passwordInput.addEventListener("input", function () {
         const password = this.value;
         let strength = 0;
-        let message = '';
-        let color = '';
+        let message = "";
+        let color = "";
 
         if (password.length > 0) {
           // Check password strength
           if (password.length < 6) {
             strength = 25;
-            message = 'Too short';
-            color = var(--error);
+            message = "Too short";
+            color = "#ef4444";
           } else {
             // Check for lowercase, uppercase, numbers, and special characters
             const hasLower = /[a-z]/.test(password);
@@ -729,71 +732,126 @@
             const hasNumber = /[0-9]/.test(password);
             const hasSpecial = /[^A-Za-z0-9]/.test(password);
 
-            const requirementsMet = [hasLower, hasUpper, hasNumber, hasSpecial].filter(Boolean).length;
+            const requirementsMet = [
+              hasLower,
+              hasUpper,
+              hasNumber,
+              hasSpecial,
+            ].filter(Boolean).length;
 
             if (requirementsMet === 1) {
               strength = 25;
-              message = 'Weak';
-              color = '#ef4444';
+              message = "Weak";
+              color = "#ef4444";
             } else if (requirementsMet === 2) {
               strength = 50;
-              message = 'Fair';
-              color = '#f59e0b';
+              message = "Fair";
+              color = "#f59e0b";
             } else if (requirementsMet === 3) {
               strength = 75;
-              message = 'Good';
-              color = '#10b981';
+              message = "Good";
+              color = "#10b981";
             } else if (requirementsMet === 4) {
               strength = 100;
-              message = 'Strong';
-              color = '#059669';
+              message = "Strong";
+              color = "#059669";
             }
           }
         }
 
         strengthFill.style.width = `${strength}%`;
         strengthFill.style.background = color;
-        strengthText.textContent = message || 'Password strength';
+        strengthText.textContent = message || "Password strength";
         strengthText.style.color = color;
       });
 
-      // Form validation
-      const signupForm = document.getElementById('signup-form');
+      // Form validation and submission
+      const signupForm = document.getElementById("signup-form");
 
-      signupForm.addEventListener('submit', function(e) {
+      signupForm.addEventListener("submit", async function (e) {
         e.preventDefault();
 
-        // Basic validation
-        const fullname = document.getElementById('fullname').value;
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const role = document.getElementById('role').value;
-        const terms = document.getElementById('terms').checked;
+        // Get form data
+        const formData = new FormData(signupForm);
+        const signupData = {
+          fullname: formData.get("fullname"),
+          email: formData.get("email"),
+          password: formData.get("password"),
+          role: formData.get("role"),
+          terms: formData.get("terms") === "on",
+          newsletter: formData.get("newsletter") === "on",
+        };
 
-        if (!fullname || !email || !password || !role || !terms) {
-          alert('Please fill in all required fields');
+        // Client-side validation
+        if (
+          !signupData.fullname ||
+          !signupData.email ||
+          !signupData.password ||
+          !signupData.role
+        ) {
+          alert("Please fill in all required fields");
           return;
         }
 
         // Email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-          alert('Please enter a valid email address');
+        if (!emailRegex.test(signupData.email)) {
+          alert("Please enter a valid email address");
           return;
         }
 
         // Password validation
-        if (password.length < 6) {
-          alert('Password must be at least 6 characters long');
+        if (signupData.password.length < 6) {
+          alert("Password must be at least 6 characters long");
           return;
         }
 
-        // If validation passes, you would typically submit the form to your server
-        console.log('Form submitted successfully');
-        // signupForm.submit(); // Uncomment to actually submit the form
+        if (!signupData.terms) {
+          alert("You must accept the terms and conditions");
+          return;
+        }
 
-        // For demo purposes, show a success message
-        alert('Account created successfully! Redirecting...');
+        // Disable submit button and show loading
+        const submitBtn = signupForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Creating Account...";
+
+        try {
+          // Send signup request to backend
+          const response = await fetch("http://localhost:8080/api/signup", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(signupData),
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            // Store token in localStorage
+            localStorage.setItem("taskswap_token", result.data.token);
+            localStorage.setItem(
+              "taskswap_user",
+              JSON.stringify(result.data.user)
+            );
+
+            alert("Account created successfully! Redirecting to dashboard...");
+
+            // Redirect to index.html
+            window.location.href = "index.html";
+          } else {
+            alert(result.message || "Signup failed. Please try again.");
+          }
+        } catch (error) {
+          console.error("Signup error:", error);
+          alert("Network error. Please check your connection and try again.");
+        } finally {
+          // Re-enable submit button
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
+        }
       });
     </script>
   </body>

@@ -545,25 +545,10 @@
     </section>
 
     <script>
-      // API Configuration
-      const API_BASE_URL = "http://localhost:8080/api";
-
-      // DOM Elements
-      const loginForm = document.getElementById("login-form");
-      const loginBtn = document.getElementById("login-btn");
-      const btnText = document.getElementById("btn-text");
+      // Password visibility toggle
       const passwordToggle = document.getElementById("password-toggle");
       const passwordInput = document.getElementById("password");
-      const alertSuccess = document.getElementById("alert-success");
-      const alertError = document.getElementById("alert-error");
-      const successMessage = document.getElementById("success-message");
-      const errorMessage = document.getElementById("error-message");
 
-      // Configure axios defaults
-      axios.defaults.timeout = 10000;
-      axios.defaults.headers.post["Content-Type"] = "application/json";
-
-      // Password visibility toggle
       passwordToggle.addEventListener("click", function () {
         const type =
           passwordInput.getAttribute("type") === "password"
@@ -576,130 +561,74 @@
         this.classList.toggle("fa-eye-slash");
       });
 
-      // Show alert messages
-      function showAlert(type, message) {
-        hideAlerts();
-
-        if (type === "success") {
-          successMessage.textContent = message;
-          alertSuccess.style.display = "block";
-        } else if (type === "error") {
-          errorMessage.textContent = message;
-          alertError.style.display = "block";
-        }
-
-        // Auto hide after 5 seconds
-        setTimeout(hideAlerts, 5000);
-      }
-
-      function hideAlerts() {
-        alertSuccess.style.display = "none";
-        alertError.style.display = "none";
-      }
-
-      // Set loading state
-      function setLoading(loading) {
-        if (loading) {
-          loginBtn.disabled = true;
-          btnText.innerHTML = '<span class="spinner"></span>Signing In...';
-        } else {
-          loginBtn.disabled = false;
-          btnText.textContent = "Login";
-        }
-      }
-
       // Form validation and submission
+      const loginForm = document.getElementById("login-form");
+
       loginForm.addEventListener("submit", async function (e) {
         e.preventDefault();
-
-        console.log("🚀 Login form submission started");
-        hideAlerts();
 
         // Get form data
         const formData = new FormData(loginForm);
         const loginData = {
-          email: formData.get("email")?.toString().trim() || "",
-          password: formData.get("password")?.toString() || "",
-          role: formData.get("role")?.toString() || "",
+          email: formData.get("email"),
+          password: formData.get("password"),
+          role: formData.get("role"),
           remember: formData.get("remember") === "on",
         };
 
-        console.log("📊 Login data:", {
-          ...loginData,
-          password: "[HIDDEN]",
-        });
-
         // Client-side validation
         if (!loginData.email || !loginData.password || !loginData.role) {
-          showAlert("error", "Please fill in all fields");
+          alert("Please fill in all fields");
           return;
         }
 
         // Email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(loginData.email)) {
-          showAlert("error", "Please enter a valid email address");
+          alert("Please enter a valid email address");
           return;
         }
 
-        setLoading(true);
+        // Disable submit button and show loading
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Signing In...";
 
         try {
-          console.log("📡 Sending login request to:", `${API_BASE_URL}/login`);
+          // Send login request to backend
+          const response = await fetch("http://localhost:8080/api/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(loginData),
+          });
 
-          // Send login request to Ballerina backend
-          const response = await axios.post(`${API_BASE_URL}/login`, loginData);
+          const result = await response.json();
 
-          console.log("✅ Login response:", response.data);
-
-          if (response.data.success) {
-            // Store token and user data
-            localStorage.setItem("taskswap_token", response.data.data.token);
+          if (result.success) {
+            // Store token in localStorage
+            localStorage.setItem("taskswap_token", result.data.token);
             localStorage.setItem(
               "taskswap_user",
-              JSON.stringify(response.data.data.user)
+              JSON.stringify(result.data.user)
             );
 
-            showAlert("success", response.data.message);
+            alert("Login successful! Redirecting to dashboard...");
 
-            // Redirect after 1.5 seconds
-            setTimeout(() => {
-              console.log("🔄 Redirecting to index.html");
-              window.location.href = "index.html";
-            }, 1500);
+            // Redirect to index.html
+            window.location.href = "index.html";
           } else {
-            showAlert(
-              "error",
-              response.data.message || "Login failed. Please try again."
-            );
+            alert(result.message || "Login failed. Please try again.");
           }
         } catch (error) {
-          console.error("❌ Login error:", error);
-
-          if (error.response) {
-            // Server responded with error status
-            const errorMsg =
-              error.response.data?.message ||
-              `Server error: ${error.response.status}`;
-            showAlert("error", errorMsg);
-            console.error("Server error response:", error.response.data);
-          } else if (error.request) {
-            // Request was made but no response received
-            showAlert(
-              "error",
-              "Unable to connect to server. Please check if the backend is running."
-            );
-            console.error("Network error:", error.request);
-          } else {
-            // Something else happened
-            showAlert(
-              "error",
-              "An unexpected error occurred. Please try again."
-            );
-            console.error("Unexpected error:", error.message);
-          }
+          console.error("Login error:", error);
+          alert("Network error. Please check your connection and try again.");
         } finally {
-          setLoading(false);
+          // Re-enable submit button
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalText;
         }
       });
 
@@ -707,23 +636,8 @@
       window.addEventListener("load", function () {
         const token = localStorage.getItem("taskswap_token");
         if (token) {
-          console.log("👤 User already logged in, redirecting...");
+          // User is already logged in, redirect to dashboard
           window.location.href = "index.html";
-        }
-      });
-
-      // Test backend connection on page load
-      window.addEventListener("load", async function () {
-        try {
-          console.log("🔍 Testing backend connection...");
-          const response = await axios.get(`${API_BASE_URL}/health`);
-          console.log("✅ Backend connection successful:", response.data);
-        } catch (error) {
-          console.warn("⚠️ Backend connection failed:", error.message);
-          showAlert(
-            "error",
-            "Unable to connect to server. Please ensure the backend is running on port 8080."
-          );
         }
       });
     </script>
