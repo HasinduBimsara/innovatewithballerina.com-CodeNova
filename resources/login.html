@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - TaskSwap</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+      :root {
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --success: #10b981;
+        --error: #ef4444;
+        --gray: #6b7280;
+        --gray-light: #e5e7eb;
+        --dark: #1f2937;
+        --light: #f9fafb;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-dark) 100%
+        );
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+
+      .login-container {
+        background: white;
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 420px;
+      }
+
+      .logo {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--primary);
+        font-size: 1.8rem;
+        font-weight: 700;
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--dark);
+      }
+
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--gray-light);
+        border-radius: 8px;
+        font-size: 1rem;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      .remember-forgot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+      }
+
+      .remember-me {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .forgot-password {
+        color: var(--primary);
+        text-decoration: none;
+      }
+
+      .btn {
+        width: 100%;
+        padding: 0.75rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .btn:hover:not(:disabled) {
+        background: var(--primary-dark);
+      }
+
+      .btn:disabled {
+        background: var(--gray);
+        cursor: not-allowed;
+      }
+
+      .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        display: none;
+      }
+
+      .alert-success {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+      }
+
+      .alert-error {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--error);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+      }
+
+      .signup-link {
+        text-align: center;
+        margin-top: 1rem;
+        color: var(--gray);
+      }
+
+      .signup-link a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 0.5rem;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="logo"><i class="fas fa-exchange-alt"></i> TaskSwap</div>
+
+      <h1 style="text-align: center; margin-bottom: 1rem">Welcome Back</h1>
+      <p style="text-align: center; color: var(--gray); margin-bottom: 2rem">
+        Sign in to your account to continue
+      </p>
+
+      <div id="alert-success" class="alert alert-success">
+        <span id="success-message"></span>
+      </div>
+
+      <div id="alert-error" class="alert alert-error">
+        <span id="error-message"></span>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Enter your email"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="role">I am a:</label>
+          <select id="role" name="role" required>
+            <option value="">Select Role</option>
+            <option value="taskgiver">Task Giver</option>
+            <option value="taskseeker">Task Seeker</option>
+            <option value="both">Both</option>
+          </select>
+        </div>
+
+        <div class="remember-forgot">
+          <div class="remember-me">
+            <input type="checkbox" id="remember" name="remember" />
+            <label for="remember">Remember me</label>
+          </div>
+          <a href="#" class="forgot-password">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn" id="login-btn">
+          <span id="btn-text">Login</span>
+        </button>
+      </form>
+
+      <div class="signup-link">
+        Don't have an account? <a href="/signup">Sign up now</a>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE_URL = "http://localhost:8081/api";
+
+      const loginForm = document.getElementById("login-form");
+      const loginBtn = document.getElementById("login-btn");
+      const btnText = document.getElementById("btn-text");
+      const alertSuccess = document.getElementById("alert-success");
+      const alertError = document.getElementById("alert-error");
+      const successMessage = document.getElementById("success-message");
+      const errorMessage = document.getElementById("error-message");
+
+      function showAlert(type, message) {
+        hideAlerts();
+        if (type === "success") {
+          successMessage.textContent = message;
+          alertSuccess.style.display = "block";
+        } else if (type === "error") {
+          errorMessage.textContent = message;
+          alertError.style.display = "block";
+        }
+        setTimeout(hideAlerts, 5000);
+      }
+
+      function hideAlerts() {
+        alertSuccess.style.display = "none";
+        alertError.style.display = "none";
+      }
+
+      function setLoading(loading) {
+        if (loading) {
+          loginBtn.disabled = true;
+          btnText.innerHTML = '<span class="spinner"></span>Signing In...';
+        } else {
+          loginBtn.disabled = false;
+          btnText.textContent = "Login";
+        }
+      }
+
+      loginForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        console.log("🚀 Login form submission started");
+        hideAlerts();
+
+        const formData = new FormData(loginForm);
+        const loginData = {
+          email: formData.get("email")?.toString().trim() || "",
+          password: formData.get("password")?.toString() || "",
+          role: formData.get("role")?.toString() || "",
+          remember: formData.get("remember") === "on",
+        };
+
+        console.log("📊 Login data:", { ...loginData, password: "[HIDDEN]" });
+
+        // Client-side validation
+        if (!loginData.email || !loginData.password || !loginData.role) {
+          showAlert("error", "Please fill in all fields");
+          return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(loginData.email)) {
+          showAlert("error", "Please enter a valid email address");
+          return;
+        }
+
+        setLoading(true);
+
+        try {
+          console.log("📡 Sending login request to:", `${API_BASE_URL}/login`);
+
+          const response = await axios.post(
+            `${API_BASE_URL}/login`,
+            loginData,
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          console.log("✅ Login response:", response.data);
+
+          if (response.data.success) {
+            localStorage.setItem("taskswap_token", response.data.data.token);
+            localStorage.setItem(
+              "taskswap_user",
+              JSON.stringify(response.data.data.user)
+            );
+
+            showAlert("success", response.data.message);
+
+            setTimeout(() => {
+              console.log("🔄 Redirecting to home page");
+              window.location.href = "/";
+            }, 1500);
+          } else {
+            showAlert(
+              "error",
+              response.data.message || "Login failed. Please try again."
+            );
+          }
+        } catch (error) {
+          console.error("❌ Login error:", error);
+
+          if (error.response) {
+            const errorMsg =
+              error.response.data?.message ||
+              `Server error: ${error.response.status}`;
+            showAlert("error", errorMsg);
+            console.error("Server error response:", error.response.data);
+          } else if (error.request) {
+            showAlert(
+              "error",
+              "Unable to connect to server. Please check if the backend is running."
+            );
+            console.error("Network error:", error.request);
+          } else {
+            showAlert(
+              "error",
+              "An unexpected error occurred. Please try again."
+            );
+            console.error("Unexpected error:", error.message);
+          }
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      // Check if user is already logged in
+      window.addEventListener("load", function () {
+        const token = localStorage.getItem("taskswap_token");
+        if (token) {
+          console.log("👤 User already logged in, redirecting...");
+          window.location.href = "/";
+        }
+      });
+
+      // Test backend connection on page load
+      window.addEventListener("load", async function () {
+        try {
+          console.log("🔍 Testing backend connection...");
+          const response = await axios.get(`${API_BASE_URL}/health`);
+          console.log("✅ Backend connection successful:", response.data);
+        } catch (error) {
+          console.warn("⚠️ Backend connection failed:", error.message);
+          showAlert(
+            "error",
+            "Unable to connect to server. Please ensure the backend is running."
+          );
+        }
+      });
+    </script>
+  </body>
+</html>
