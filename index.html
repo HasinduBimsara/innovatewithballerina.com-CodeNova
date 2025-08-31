@@ -16,6 +16,8 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <!-- Add Axios CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
       :root {
         --primary: #2563eb;
@@ -136,6 +138,7 @@
         font-weight: 500;
         transition: var(--transition);
         cursor: pointer;
+        border: none;
       }
 
       .btn-primary {
@@ -521,6 +524,37 @@
         font-size: 0.9rem;
       }
 
+      /* User Info Display */
+      .user-info {
+        display: none;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .user-info.active {
+        display: flex;
+      }
+
+      .user-name {
+        font-weight: 500;
+        color: var(--dark);
+      }
+
+      .logout-btn {
+        background: var(--secondary);
+        color: white;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: var(--transition);
+      }
+
+      .logout-btn:hover {
+        background: #d97706;
+      }
+
       /* Responsive Design */
       @media (max-width: 768px) {
         .nav-links {
@@ -595,17 +629,27 @@
           <span class="logo-text">TaskSwap</span>
         </a>
 
-        <div class="nav-links">
+        <div class="nav-links" id="navLinks">
           <a href="#">Home</a>
-          <a href="giver.html">Giver</a>
-          <a href="seeker.html">Seeker</a>
+          <a href="#">How It Works</a>
+          <a href="#">Categories</a>
           <a href="#">About Us</a>
           <a href="#">Contact</a>
-          <a href="login.html" class="btn btn-outline">Login</a>
-          <a href="signup.html" class="btn btn-primary">Sign Up</a>
+
+          <!-- Show these when user is NOT logged in -->
+          <div class="auth-links">
+            <a href="login.html" class="btn btn-outline">Login</a>
+            <a href="signup.html" class="btn btn-primary">Sign Up</a>
+          </div>
+
+          <!-- Show these when user IS logged in -->
+          <div class="user-info" id="userInfo">
+            <span class="user-name" id="userName"></span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+          </div>
         </div>
 
-        <button class="mobile-menu-btn">
+        <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
           <i class="fas fa-bars"></i>
         </button>
       </div>
@@ -794,7 +838,7 @@
           platform
         </p>
         <div class="cta-buttons">
-          <a href="#" class="btn btn-light">Sign Up Now</a>
+          <a href="signup.html" class="btn btn-light">Sign Up Now</a>
           <a href="#" class="btn btn-outline">Learn More</a>
         </div>
       </div>
@@ -845,93 +889,40 @@
             <h3>Contact Info</h3>
             <ul class="footer-links">
               <li>
-                <i class="fas fa-map-marker-alt"></i> Sabaragamuwa University of
-                Sri Lanka, Belihuloya
+                <i class="fas fa-map-marker-alt"></i> 123 Task Street, City
               </li>
-              <li><i class="fas fa-phone"></i> +94 (76) 529-3838</li>
-              <li><i class="fas fa-envelope"></i> liyanage2021@gmail.com</li>
+              <li><i class="fas fa-phone"></i> +1 (555) 123-4567</li>
+              <li><i class="fas fa-envelope"></i> info@taskswap.com</li>
             </ul>
           </div>
         </div>
 
         <div class="footer-bottom">
-          <p>&copy; 2025 TaskSwap. All rights reserved.</p>
+          <p>&copy; 2023 TaskSwap. All rights reserved.</p>
         </div>
       </div>
     </footer>
 
     <script>
-      // Check authentication status
-      function checkAuth() {
-        const token = localStorage.getItem("taskswap_token");
-        const user = localStorage.getItem("taskswap_user");
-
-        if (!token || !user) {
-          // User not logged in, redirect to login
-          window.location.href = "login.html";
-          return;
-        }
-
-        try {
-          const userData = JSON.parse(user);
-          console.log("User logged in:", userData);
-
-          // You can update the UI to show user info
-          // For example, update navigation to show user name
-          updateUIForLoggedInUser(userData);
-        } catch (error) {
-          console.error("Error parsing user data:", error);
-          // Clear invalid data and redirect to login
-          localStorage.removeItem("taskswap_token");
-          localStorage.removeItem("taskswap_user");
-          window.location.href = "login.html";
-        }
-      }
-
-      function updateUIForLoggedInUser(user) {
-        // Update UI elements to show user is logged in
-        // This is just an example - adapt to your actual HTML structure
-        const userNameElement = document.querySelector(".user-name");
-        if (userNameElement) {
-          userNameElement.textContent = user.fullname;
-        }
-
-        // Show/hide elements based on user role
-        if (user.role === "taskgiver") {
-          // Show task posting features
-          console.log("User is a task giver");
-        } else if (user.role === "taskseeker") {
-          // Show task browsing features
-          console.log("User is a task seeker");
-        } else if (user.role === "both") {
-          // Show both features
-          console.log("User can give and seek tasks");
-        }
-      }
-
-      function logout() {
-        localStorage.removeItem("taskswap_token");
-        localStorage.removeItem("taskswap_user");
-        window.location.href = "login.html";
-      }
-
-      // Check authentication when page loads
-      window.addEventListener("load", checkAuth);
-    </script>
-    <script>
       // API Configuration
       const API_BASE_URL = "http://localhost:8080/api";
 
+      // Mobile menu toggle
+      function toggleMobileMenu() {
+        const navLinks = document.getElementById("navLinks");
+        navLinks.classList.toggle("active");
+      }
+
       // Check authentication status
       function checkAuth() {
         const token = localStorage.getItem("taskswap_token");
         const user = localStorage.getItem("taskswap_user");
 
         if (!token || !user) {
-          // User not logged in, redirect to login
-          console.log("🔒 User not authenticated, redirecting to login");
-          window.location.href = "login.html";
-          return;
+          // User not logged in - show login/signup buttons
+          console.log("🔒 User not authenticated");
+          showAuthLinks();
+          return false;
         }
 
         try {
@@ -940,24 +931,36 @@
 
           // Update the UI to show user info
           updateUIForLoggedInUser(userData);
+          return true;
         } catch (error) {
           console.error("❌ Error parsing user data:", error);
-          // Clear invalid data and redirect to login
+          // Clear invalid data
           localStorage.removeItem("taskswap_token");
           localStorage.removeItem("taskswap_user");
-          window.location.href = "login.html";
+          showAuthLinks();
+          return false;
         }
       }
 
-      function updateUIForLoggedInUser(user) {
-        // Update UI elements to show user is logged in
-        console.log(`✅ Welcome ${user.fullname}! Role: ${user.role}`);
+      function showAuthLinks() {
+        const authLinks = document.querySelector(".auth-links");
+        const userInfo = document.getElementById("userInfo");
 
-        // Example: Update navigation or header with user info
-        const userNameElement = document.querySelector(".user-name");
-        if (userNameElement) {
-          userNameElement.textContent = user.fullname;
-        }
+        if (authLinks) authLinks.style.display = "flex";
+        if (userInfo) userInfo.classList.remove("active");
+      }
+
+      function updateUIForLoggedInUser(user) {
+        // Hide auth links and show user info
+        const authLinks = document.querySelector(".auth-links");
+        const userInfo = document.getElementById("userInfo");
+        const userName = document.getElementById("userName");
+
+        if (authLinks) authLinks.style.display = "none";
+        if (userInfo) userInfo.classList.add("active");
+        if (userName) userName.textContent = `Welcome, ${user.fullname}`;
+
+        console.log(`✅ Welcome ${user.fullname}! Role: ${user.role}`);
 
         // Show/hide elements based on user role
         if (user.role === "taskgiver") {
@@ -1005,20 +1008,40 @@
         localStorage.removeItem("taskswap_token");
         localStorage.removeItem("taskswap_user");
 
-        // Redirect to login
-        window.location.href = "login.html";
+        // Update UI to show auth links
+        showAuthLinks();
+
+        // Optionally redirect to login or reload page
+        // window.location.href = "login.html";
+        window.location.reload();
       }
 
-      // Check authentication when page loads
-      window.addEventListener("load", checkAuth);
-
       // Test API connection
-      window.addEventListener("load", async function () {
+      async function testAPIConnection() {
         try {
           const response = await axios.get(`${API_BASE_URL}/health`);
           console.log("✅ API Health Check:", response.data);
         } catch (error) {
           console.warn("⚠️ API connection failed:", error.message);
+        }
+      }
+
+      // Initialize page
+      window.addEventListener("load", function () {
+        checkAuth();
+        testAPIConnection();
+      });
+
+      // Close mobile menu when clicking outside
+      document.addEventListener("click", function (event) {
+        const navLinks = document.getElementById("navLinks");
+        const mobileMenuBtn = document.querySelector(".mobile-menu-btn");
+
+        if (
+          !navLinks.contains(event.target) &&
+          !mobileMenuBtn.contains(event.target)
+        ) {
+          navLinks.classList.remove("active");
         }
       });
     </script>
