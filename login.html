@@ -640,6 +640,61 @@
           window.location.href = "index.html";
         }
       });
+      // In login.html <script> section
+      const API_BASE_URL = "http://localhost:8080/api";
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const loginForm = document.getElementById("login-form");
+
+        loginForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+          const role = document.getElementById("role").value;
+          const remember = document.getElementById("remember").checked;
+
+          const loginData = {
+            email: email,
+            password: password,
+            role: role,
+            remember: remember,
+          };
+
+          try {
+            const response = await axios.post(
+              `${API_BASE_URL}/login`,
+              loginData
+            );
+
+            if (response.data.success) {
+              // Store token and user data
+              localStorage.setItem("taskswap_token", response.data.data.token);
+              localStorage.setItem(
+                "taskswap_user",
+                JSON.stringify(response.data.data.user)
+              );
+
+              // Show success message
+              alert(response.data.message || "Login successful!");
+
+              // Redirect to index.html (main dashboard)
+              window.location.href = "index.html";
+            } else {
+              alert(response.data.message || "Login failed. Please try again.");
+            }
+          } catch (error) {
+            console.error("Login error:", error);
+            if (error.response) {
+              alert(
+                error.response.data?.message || "Server error during login."
+              );
+            } else {
+              alert("An unexpected error occurred during login.");
+            }
+          }
+        });
+      });
     </script>
   </body>
 </html>

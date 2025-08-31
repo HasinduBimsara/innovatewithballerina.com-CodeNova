@@ -861,62 +861,312 @@
     </footer>
 
     <script>
+      const API_BASE_URL = "http://localhost:8080/api";
+
       // Check authentication status
       function checkAuth() {
         const token = localStorage.getItem("taskswap_token");
         const user = localStorage.getItem("taskswap_user");
 
         if (!token || !user) {
-          // User not logged in, redirect to login
-          window.location.href = "login.html";
-          return;
+          // User not logged in - show login/signup options
+          updateUIForGuestUser();
+          return false;
         }
 
         try {
           const userData = JSON.parse(user);
           console.log("User logged in:", userData);
 
-          // You can update the UI to show user info
-          // For example, update navigation to show user name
+          // Update UI for logged-in user
           updateUIForLoggedInUser(userData);
+          return true;
         } catch (error) {
           console.error("Error parsing user data:", error);
-          // Clear invalid data and redirect to login
+          // Clear invalid data and show guest UI
           localStorage.removeItem("taskswap_token");
           localStorage.removeItem("taskswap_user");
-          window.location.href = "login.html";
+          updateUIForGuestUser();
+          return false;
         }
       }
 
       function updateUIForLoggedInUser(user) {
-        // Update UI elements to show user is logged in
-        // This is just an example - adapt to your actual HTML structure
-        const userNameElement = document.querySelector(".user-name");
-        if (userNameElement) {
-          userNameElement.textContent = user.fullname;
+        // Update navigation to show user info
+        const authButtons = document.querySelector(".auth-buttons");
+        const userDropdown = document.querySelector(".user-dropdown");
+
+        if (authButtons) {
+          authButtons.style.display = "none";
         }
 
-        // Show/hide elements based on user role
-        if (user.role === "taskgiver") {
-          // Show task posting features
-          console.log("User is a task giver");
-        } else if (user.role === "taskseeker") {
-          // Show task browsing features
-          console.log("User is a task seeker");
-        } else if (user.role === "both") {
-          // Show both features
-          console.log("User can give and seek tasks");
+        if (userDropdown) {
+          userDropdown.style.display = "block";
+
+          // Update user name in dropdown
+          const userNameElement = userDropdown.querySelector(".user-name");
+          if (userNameElement) {
+            userNameElement.textContent = user.fullname;
+          }
+
+          // Update user email
+          const userEmailElement = userDropdown.querySelector(".user-email");
+          if (userEmailElement) {
+            userEmailElement.textContent = user.email;
+          }
+
+          // Update role badge
+          const roleBadge = userDropdown.querySelector(".role-badge");
+          if (roleBadge) {
+            roleBadge.textContent =
+              user.role.charAt(0).toUpperCase() + user.role.slice(1);
+            roleBadge.className = `role-badge badge ${getRoleBadgeClass(
+              user.role
+            )}`;
+          }
+        }
+
+        // Update hero section buttons based on user role
+        updateHeroButtons(user.role);
+
+        // Update main navigation links
+        updateNavigationLinks(user.role);
+
+        // Show welcome message
+        updateWelcomeMessage(user);
+      }
+
+      function updateUIForGuestUser() {
+        // Show login/signup buttons
+        const authButtons = document.querySelector(".auth-buttons");
+        const userDropdown = document.querySelector(".user-dropdown");
+
+        if (authButtons) {
+          authButtons.style.display = "block";
+        }
+
+        if (userDropdown) {
+          userDropdown.style.display = "none";
+        }
+
+        // Update hero buttons for guests
+        updateHeroButtons(null);
+      }
+
+      function updateHeroButtons(userRole) {
+        const heroButtons = document.querySelector(".hero-buttons");
+        if (!heroButtons) return;
+
+        heroButtons.innerHTML = ""; // Clear existing buttons
+
+        if (userRole === "taskgiver") {
+          heroButtons.innerHTML = `
+            <a href="giver.html" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus-circle me-2"></i>Post a Task
+            </a>
+            <a href="giver.html" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-tachometer-alt me-2"></i>My Dashboard
+            </a>
+        `;
+        } else if (userRole === "taskseeker") {
+          heroButtons.innerHTML = `
+            <a href="seeker.html" class="btn btn-primary btn-lg">
+                <i class="fas fa-search me-2"></i>Browse Tasks
+            </a>
+            <a href="seeker.html" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-tachometer-alt me-2"></i>My Dashboard
+            </a>
+        `;
+        } else if (userRole === "both") {
+          heroButtons.innerHTML = `
+            <a href="giver.html" class="btn btn-primary btn-lg me-3">
+                <i class="fas fa-plus-circle me-2"></i>Post a Task
+            </a>
+            <a href="seeker.html" class="btn btn-success btn-lg">
+                <i class="fas fa-search me-2"></i>Browse Tasks
+            </a>
+        `;
+        } else {
+          // Default for unauthenticated users
+          heroButtons.innerHTML = `
+            <a href="login.html" class="btn btn-primary btn-lg">
+                <i class="fas fa-handshake me-2"></i>Find Help
+            </a>
+            <a href="signup.html" class="btn btn-outline-primary btn-lg">
+                <i class="fas fa-user-plus me-2"></i>Offer Help
+            </a>
+        `;
+        }
+      }
+
+      function updateNavigationLinks(userRole) {
+        // Update main navigation based on user role
+        const navLinks = document.querySelector(".navbar-nav");
+        if (!navLinks) return;
+
+        // Find or create role-specific navigation items
+        let dashboardLink = navLinks.querySelector(".dashboard-link");
+        if (!dashboardLink && userRole) {
+          // Create dashboard link if it doesn't exist
+          const li = document.createElement("li");
+          li.className = "nav-item";
+
+          if (userRole === "taskgiver") {
+            li.innerHTML =
+              '<a class="nav-link dashboard-link" href="giver.html"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a>';
+          } else if (userRole === "taskseeker") {
+            li.innerHTML =
+              '<a class="nav-link dashboard-link" href="seeker.html"><i class="fas fa-tachometer-alt me-1"></i>Dashboard</a>';
+          } else if (userRole === "both") {
+            li.innerHTML = `
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle dashboard-link" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="giver.html"><i class="fas fa-plus me-2"></i>Task Giver</a></li>
+                        <li><a class="dropdown-item" href="seeker.html"><i class="fas fa-search me-2"></i>Task Seeker</a></li>
+                    </ul>
+                </div>
+            `;
+          }
+
+          // Insert before the last item (usually the user dropdown)
+          const lastItem = navLinks.lastElementChild;
+          navLinks.insertBefore(li, lastItem);
+        }
+      }
+
+      function updateWelcomeMessage(user) {
+        // Update hero title to welcome the user
+        const heroTitle = document.querySelector(".hero-title");
+        if (heroTitle) {
+          heroTitle.innerHTML = `Welcome back, <span class="text-primary">${user.fullname}</span>!`;
+        }
+
+        // Update hero subtitle based on role
+        const heroSubtitle = document.querySelector(".hero-subtitle");
+        if (heroSubtitle) {
+          let subtitle = "";
+          switch (user.role) {
+            case "taskgiver":
+              subtitle =
+                "Ready to post your next task? Let's find you the perfect helper.";
+              break;
+            case "taskseeker":
+              subtitle =
+                "Discover new opportunities and tasks that match your skills.";
+              break;
+            case "both":
+              subtitle =
+                "Post tasks or find work - you have access to everything!";
+              break;
+            default:
+              subtitle =
+                "Your trusted platform for task sharing and collaboration.";
+          }
+          heroSubtitle.textContent = subtitle;
+        }
+      }
+
+      function getRoleBadgeClass(role) {
+        switch (role) {
+          case "taskgiver":
+            return "bg-primary";
+          case "taskseeker":
+            return "bg-success";
+          case "both":
+            return "bg-info";
+          default:
+            return "bg-secondary";
         }
       }
 
       function logout() {
+        // Optional: Call backend logout endpoint
+        const token = localStorage.getItem("taskswap_token");
+        if (token) {
+          axios
+            .post(
+              `${API_BASE_URL}/logout`,
+              {},
+              {
+                headers: { Authorization: `Bearer ${token}` },
+              }
+            )
+            .catch((error) => {
+              console.log("Logout API call failed:", error);
+            });
+        }
+
+        // Clear local storage
         localStorage.removeItem("taskswap_token");
         localStorage.removeItem("taskswap_user");
+
+        // Show success message
+        alert("You have been logged out successfully!");
+
+        // Redirect to login page
         window.location.href = "login.html";
       }
 
-      // Check authentication when page loads
-      window.addEventListener("load", checkAuth);
+      // Verify token with backend (optional but recommended)
+      async function verifyToken() {
+        const token = localStorage.getItem("taskswap_token");
+        if (!token) return false;
+
+        try {
+          const response = await axios.get(`${API_BASE_URL}/userProfile`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+
+          if (response.data.success) {
+            return true;
+          } else {
+            // Token is invalid
+            localStorage.removeItem("taskswap_token");
+            localStorage.removeItem("taskswap_user");
+            return false;
+          }
+        } catch (error) {
+          console.error("Token verification failed:", error);
+          if (error.response && error.response.status === 401) {
+            // Token expired or invalid
+            localStorage.removeItem("taskswap_token");
+            localStorage.removeItem("taskswap_user");
+          }
+          return false;
+        }
+      }
+
+      // Initialize authentication check when page loads
+      window.addEventListener("load", async function () {
+        // First check local storage
+        const isLoggedIn = checkAuth();
+
+        // If user appears to be logged in, verify token with backend
+        if (isLoggedIn) {
+          const tokenValid = await verifyToken();
+          if (!tokenValid) {
+            // Token was invalid, update UI for guest
+            updateUIForGuestUser();
+          }
+        }
+      });
+
+      // Add event listeners for logout buttons
+      document.addEventListener("DOMContentLoaded", function () {
+        // Add logout event listener to any logout buttons
+        const logoutButtons = document.querySelectorAll(
+          '.logout-btn, [data-action="logout"]'
+        );
+        logoutButtons.forEach((button) => {
+          button.addEventListener("click", function (e) {
+            e.preventDefault();
+            logout();
+          });
+        });
+      });
     </script>
   </body>
 </html>
