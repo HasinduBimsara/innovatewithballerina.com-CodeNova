@@ -1,0 +1,6 @@
+[taskswap.backend]
+mongoHost = "localhost"
+mongoPort = 27017
+databaseName = "users"
+collectionName = "users"
+jwtSecret = "your-super-secret-jwt-key-change-this-in-production-make-it-at-least-32-characters-long"

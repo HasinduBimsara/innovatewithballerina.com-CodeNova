@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Login to your TaskSwap account to access tasks or offer your services."
+    />
+    <title>Login - TaskSwap</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+      :root {
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --secondary: #f59e0b;
+        --dark: #1f2937;
+        --light: #f9fafb;
+        --gray: #6b7280;
+        --gray-light: #e5e7eb;
+        --success: #10b981;
+        --error: #ef4444;
+        --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        --transition: all 0.3s ease;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        background: var(--light);
+        color: var(--dark);
+        line-height: 1.6;
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* Illustration Section */
+      .illustration-section {
+        flex: 1;
+        background: linear-gradient(
+          135deg,
+          var(--primary) 0%,
+          var(--primary-dark) 100%
+        );
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        display: none;
+      }
+
+      .illustration-content {
+        max-width: 500px;
+        z-index: 2;
+        text-align: center;
+      }
+
+      .illustration-content h2 {
+        font-size: 2.2rem;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
+      }
+
+      .illustration-content p {
+        opacity: 0.9;
+        margin-bottom: 2rem;
+      }
+
+      .illustration {
+        font-size: 8rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+      }
+
+      .testimonial {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-top: 2rem;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .testimonial-text {
+        font-style: italic;
+        margin-bottom: 1rem;
+      }
+
+      .testimonial-author {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .author-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid white;
+      }
+
+      .author-details h4 {
+        font-size: 0.9rem;
+      }
+
+      .author-details p {
+        font-size: 0.8rem;
+        margin: 0;
+        opacity: 0.8;
+      }
+
+      /* Login Section */
+      .login-section {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        background: white;
+      }
+
+      .login-container {
+        width: 100%;
+        max-width: 420px;
+        padding: 2.5rem;
+        border-radius: 16px;
+        box-shadow: var(--shadow-lg);
+        background: white;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+        text-decoration: none;
+      }
+
+      .logo-icon {
+        font-size: 2rem;
+        color: var(--primary);
+      }
+
+      .logo-text {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--primary);
+      }
+
+      .login-header {
+        margin-bottom: 2rem;
+        text-align: center;
+      }
+
+      .login-header h1 {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 0.5rem;
+      }
+
+      .login-header p {
+        color: var(--gray);
+        font-size: 1rem;
+      }
+
+      .form-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: var(--dark);
+        font-size: 0.9rem;
+      }
+
+      .input-with-icon {
+        position: relative;
+      }
+
+      .input-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray);
+        z-index: 1;
+      }
+
+      .form-group input {
+        width: 100%;
+        padding: 0.9rem 1rem 0.9rem 2.8rem;
+        border: 1px solid var(--gray-light);
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: var(--transition);
+        background: var(--light);
+      }
+
+      .form-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      .form-group select {
+        width: 100%;
+        padding: 0.9rem 1rem 0.9rem 2.8rem;
+        border: 1px solid var(--gray-light);
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: var(--transition);
+        background: var(--light);
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1em;
+      }
+
+      .form-group select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      .password-toggle {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray);
+        cursor: pointer;
+        z-index: 2;
+      }
+
+      .remember-forgot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+      }
+
+      .remember-me {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .remember-me input {
+        width: auto;
+        padding: 0;
+      }
+
+      .forgot-password {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: var(--transition);
+      }
+
+      .forgot-password:hover {
+        text-decoration: underline;
+      }
+
+      .btn {
+        display: block;
+        width: 100%;
+        padding: 1rem;
+        border: none;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        text-align: center;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        background: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .btn-primary:disabled {
+        background: var(--gray);
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .signup-link {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.9rem;
+        color: var(--gray);
+      }
+
+      .signup-link a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        margin-left: 0.5rem;
+        transition: var(--transition);
+      }
+
+      .signup-link a:hover {
+        text-decoration: underline;
+      }
+
+      /* Alert Messages */
+      .alert {
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        display: none;
+      }
+
+      .alert-success {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+      }
+
+      .alert-error {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--error);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+      }
+
+      /* Loading Spinner */
+      .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 0.5rem;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Responsive Design */
+      @media (min-width: 992px) {
+        body {
+          flex-direction: row;
+        }
+
+        .illustration-section {
+          display: flex;
+        }
+      }
+
+      @media (max-width: 991px) {
+        body {
+          flex-direction: column;
+        }
+
+        .illustration-section {
+          display: none;
+        }
+
+        .login-section {
+          padding: 1.5rem;
+        }
+
+        .login-container {
+          padding: 2rem;
+          box-shadow: var(--shadow-sm);
+        }
+      }
+
+      @media (max-width: 480px) {
+        .login-container {
+          padding: 1.5rem;
+        }
+
+        .remember-forgot {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.75rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Illustration Section (visible on larger screens) -->
+    <section class="illustration-section">
+      <div class="illustration-content">
+        <div class="illustration">
+          <i class="fas fa-hands-helping"></i>
+        </div>
+        <h2>Connect with a Community of Taskers</h2>
+        <p>
+          Join thousands of users who are completing tasks and getting things
+          done every day.
+        </p>
+
+        <div class="testimonial">
+          <p class="testimonial-text">
+            "TaskSwap helped me turn my free time into extra income. I can now
+            choose tasks that match my skills and schedule."
+          </p>
+          <div class="testimonial-author">
+            <img
+              src="https://randomuser.me/api/portraits/women/44.jpg"
+              alt="Emma Rodriguez"
+              class="author-avatar"
+            />
+            <div class="author-details">
+              <h4>Emma Rodriguez</h4>
+              <p>Freelance Designer</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Login Section -->
+    <section class="login-section">
+      <div class="login-container">
+        <a href="index.html" class="logo">
+          <span class="logo-icon"><i class="fas fa-exchange-alt"></i></span>
+          <span class="logo-text">TaskSwap</span>
+        </a>
+
+        <div class="login-header">
+          <h1>Welcome Back</h1>
+          <p>Sign in to your account to continue</p>
+        </div>
+
+        <!-- Alert Messages -->
+        <div id="alert-success" class="alert alert-success">
+          <i class="fas fa-check-circle"></i>
+          <span id="success-message"></span>
+        </div>
+
+        <div id="alert-error" class="alert alert-error">
+          <i class="fas fa-exclamation-circle"></i>
+          <span id="error-message"></span>
+        </div>
+
+        <form id="login-form">
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <div class="input-with-icon">
+              <i class="fas fa-envelope input-icon"></i>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-with-icon">
+              <i class="fas fa-lock input-icon"></i>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                required
+              />
+              <i class="fas fa-eye password-toggle" id="password-toggle"></i>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="role">I am a:</label>
+            <div class="input-with-icon">
+              <i class="fas fa-briefcase input-icon"></i>
+              <select id="role" name="role" required>
+                <option value="">Select Role</option>
+                <option value="taskgiver">Task Giver</option>
+                <option value="taskseeker">Task Seeker</option>
+                <option value="both">Both</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="remember-forgot">
+            <div class="remember-me">
+              <input type="checkbox" id="remember" name="remember" />
+              <label for="remember">Remember me</label>
+            </div>
+            <a href="#" class="forgot-password">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="login-btn">
+            <span id="btn-text">Login</span>
+          </button>
+        </form>
+
+        <div class="signup-link">
+          Don't have an account? <a href="signup.html">Sign up now</a>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      // API Configuration
+      const API_BASE_URL = "http://localhost:8080/api";
+
+      // DOM Elements
+      const loginForm = document.getElementById("login-form");
+      const loginBtn = document.getElementById("login-btn");
+      const btnText = document.getElementById("btn-text");
+      const passwordToggle = document.getElementById("password-toggle");
+      const passwordInput = document.getElementById("password");
+      const alertSuccess = document.getElementById("alert-success");
+      const alertError = document.getElementById("alert-error");
+      const successMessage = document.getElementById("success-message");
+      const errorMessage = document.getElementById("error-message");
+
+      // Configure axios defaults
+      axios.defaults.timeout = 10000;
+      axios.defaults.headers.post["Content-Type"] = "application/json";
+
+      // Password visibility toggle
+      passwordToggle.addEventListener("click", function () {
+        const type =
+          passwordInput.getAttribute("type") === "password"
+            ? "text"
+            : "password";
+        passwordInput.setAttribute("type", type);
+
+        // Toggle eye icon
+        this.classList.toggle("fa-eye");
+        this.classList.toggle("fa-eye-slash");
+      });
+
+      // Show alert messages
+      function showAlert(type, message) {
+        hideAlerts();
+
+        if (type === "success") {
+          successMessage.textContent = message;
+          alertSuccess.style.display = "block";
+        } else if (type === "error") {
+          errorMessage.textContent = message;
+          alertError.style.display = "block";
+        }
+
+        // Auto hide after 5 seconds
+        setTimeout(hideAlerts, 5000);
+      }
+
+      function hideAlerts() {
+        alertSuccess.style.display = "none";
+        alertError.style.display = "none";
+      }
+
+      // Set loading state
+      function setLoading(loading) {
+        if (loading) {
+          loginBtn.disabled = true;
+          btnText.innerHTML = '<span class="spinner"></span>Signing In...';
+        } else {
+          loginBtn.disabled = false;
+          btnText.textContent = "Login";
+        }
+      }
+
+      // Form validation and submission
+      loginForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        console.log("🚀 Login form submission started");
+        hideAlerts();
+
+        // Get form data
+        const formData = new FormData(loginForm);
+        const loginData = {
+          email: formData.get("email")?.toString().trim() || "",
+          password: formData.get("password")?.toString() || "",
+          role: formData.get("role")?.toString() || "",
+          remember: formData.get("remember") === "on",
+        };
+
+        console.log("📊 Login data:", {
+          ...loginData,
+          password: "[HIDDEN]",
+        });
+
+        // Client-side validation
+        if (!loginData.email || !loginData.password || !loginData.role) {
+          showAlert("error", "Please fill in all fields");
+          return;
+        }
+
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(loginData.email)) {
+          showAlert("error", "Please enter a valid email address");
+          return;
+        }
+
+        setLoading(true);
+
+        try {
+          console.log("📡 Sending login request to:", `${API_BASE_URL}/login`);
+
+          // Send login request to Ballerina backend
+          const response = await axios.post(`${API_BASE_URL}/login`, loginData);
+
+          console.log("✅ Login response:", response.data);
+
+          if (response.data.success) {
+            // Store token and user data
+            localStorage.setItem("taskswap_token", response.data.data.token);
+            localStorage.setItem(
+              "taskswap_user",
+              JSON.stringify(response.data.data.user)
+            );
+
+            showAlert("success", response.data.message);
+
+            // Redirect after 1.5 seconds
+            setTimeout(() => {
+              console.log("🔄 Redirecting to index.html");
+              window.location.href = "index.html";
+            }, 1500);
+          } else {
+            showAlert(
+              "error",
+              response.data.message || "Login failed. Please try again."
+            );
+          }
+        } catch (error) {
+          console.error("❌ Login error:", error);
+
+          if (error.response) {
+            // Server responded with error status
+            const errorMsg =
+              error.response.data?.message ||
+              `Server error: ${error.response.status}`;
+            showAlert("error", errorMsg);
+            console.error("Server error response:", error.response.data);
+          } else if (error.request) {
+            // Request was made but no response received
+            showAlert(
+              "error",
+              "Unable to connect to server. Please check if the backend is running."
+            );
+            console.error("Network error:", error.request);
+          } else {
+            // Something else happened
+            showAlert(
+              "error",
+              "An unexpected error occurred. Please try again."
+            );
+            console.error("Unexpected error:", error.message);
+          }
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      // Check if user is already logged in
+      window.addEventListener("load", function () {
+        const token = localStorage.getItem("taskswap_token");
+        if (token) {
+          console.log("👤 User already logged in, redirecting...");
+          window.location.href = "index.html";
+        }
+      });
+
+      // Test backend connection on page load
+      window.addEventListener("load", async function () {
+        try {
+          console.log("🔍 Testing backend connection...");
+          const response = await axios.get(`${API_BASE_URL}/health`);
+          console.log("✅ Backend connection successful:", response.data);
+        } catch (error) {
+          console.warn("⚠️ Backend connection failed:", error.message);
+          showAlert(
+            "error",
+            "Unable to connect to server. Please ensure the backend is running on port 8080."
+          );
+        }
+      });
+    </script>
+  </body>
+</html>
